@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMINISTRADOR
+  JEFE_DEPARTAMENTO
+  PROFESOR
+}
+
+enum NivelEducativo {
+  ESO
+  BACHILLERATO
+}
+
+enum Trimestre {
+  PRIMERO
+  SEGUNDO
+  TERCERO
+  FINAL
+}
+
+enum NivelCompetencia {
+  EN_INICIO
+  EN_DESARROLLO
+  ADQUIRIDO
+  DOMINADO
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String
+  nombre         String
+  apellido1      String
+  apellido2      String?
+  role           Role
+  departamentoId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  taughtGroups     GrupoProfesor[]
+  calificaciones   Calificacion[]
+  departamento     Departamento?   @relation(fields: [departamentoId], references: [id])
+  jefeDepartamento Departamento?   @relation("JefeDepartamentoRelation")
+}
+
+model Departamento {
+  id             String                  @id @default(cuid())
+  nombre         String
+  codigo         String                  @unique
+  jefeId         String?                 @unique
+  materias       Materia[]
+  programaciones ProgramacionDidactica[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  jefe  User?  @relation("JefeDepartamentoRelation", fields: [jefeId], references: [id])
+  users User[]
+}
+
+model Materia {
+  id             String                  @id @default(cuid())
+  nombre         String
+  codigo         String                  @unique
+  departamento   Departamento            @relation(fields: [departamentoId], references: [id])
+  departamentoId String
+  nivelEducativo NivelEducativo
+  horasSemanales Int                     @default(3)
+  competencias   CompetenciaEspecifica[]
+  grupos         GrupoMateria[]
+  saberes        Saber[]
+  programaciones ProgramacionDidactica[]
+  evaluaciones   EvaluacionAlumno[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+}
+
+model Grupo {
+  id             String         @id @default(cuid())
+  nombre         String
+  nivelEducativo NivelEducativo
+  curso          Int
+  letra          String
+  materias       GrupoMateria[]
+  alumnos        Alumno[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([nombre, nivelEducativo, curso, letra])
+}
+
+model GrupoMateria {
+  id         String          @id @default(cuid())
+  grupo      Grupo           @relation(fields: [grupoId], references: [id])
+  grupoId    String
+  materia    Materia         @relation(fields: [materiaId], references: [id])
+  materiaId  String
+  profesores GrupoProfesor[]
+
+  @@unique([grupoId, materiaId])
+}
+
+model GrupoProfesor {
+  id             String       @id @default(cuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  grupoMateria   GrupoMateria @relation(fields: [grupoMateriaId], references: [id])
+  grupoMateriaId String
+
+  @@unique([userId, grupoMateriaId])
+}
+
+model Alumno {
+  id             String             @id @default(cuid())
+  nif            String             @unique
+  nombre         String
+  apellido1      String
+  apellido2      String?
+  fechaNac       DateTime
+  grupo          Grupo              @relation(fields: [grupoId], references: [id])
+  grupoId        String
+  calificaciones Calificacion[]
+  evaluaciones   EvaluacionAlumno[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model CompetenciaClave {
+  id           String                  @id @default(cuid())
+  codigo       String                  @unique
+  nombre       String
+  descripcion  String
+  competencias CompetenciaEspecifica[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+}
+
+model CompetenciaEspecifica {
+  id                 String               @id @default(cuid())
+  codigo             String               @unique
+  nombre             String
+  descripcion        String
+  materia            Materia              @relation(fields: [materiaId], references: [id])
+  materiaId          String
+  competenciaClave   CompetenciaClave     @relation(fields: [competenciaClaveId], references: [id])
+  competenciaClaveId String
+  criterios          CriterioEvaluacion[]
+  saberes            SaberCriterio[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+}
+
+model CriterioEvaluacion {
+  id                      String                 @id @default(cuid())
+  codigo                  String
+  descripcion             String
+  pesoPorcentual          Float                  @default(0.0)
+  orden                   Int
+  competenciaEspecifica   CompetenciaEspecifica  @relation(fields: [competenciaEspecificaId], references: [id])
+  competenciaEspecificaId String
+  programacionCriterios   ProgramacionCriterio[]
+  calificaciones          CalificacionCriterio[]
+  situacionesAprendizaje  SituacionAprendizaje[]
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+
+  @@unique([competenciaEspecificaId, codigo])
+}
+
+model Saber {
+  id        String          @id @default(cuid())
+  bloque    String
+  contenido String
+  materia   Materia         @relation(fields: [materiaId], references: [id])
+  materiaId String
+  criterios SaberCriterio[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model SaberCriterio {
+  id         String                @id @default(cuid())
+  saber      Saber                 @relation(fields: [saberId], references: [id])
+  saberId    String
+  criterio   CompetenciaEspecifica @relation(fields: [criterioId], references: [id])
+  criterioId String
+
+  @@unique([saberId, criterioId])
+}
+
+model ProgramacionDidactica {
+  id              String       @id @default(cuid())
+  departamento    Departamento @relation(fields: [departamentoId], references: [id])
+  departamentoId  String
+  materia         Materia      @relation(fields: [materiaId], references: [id])
+  materiaId       String
+  cursoEscolar    String
+  objetivoGeneral String
+  evaluacion      String
+  recuperacion    String
+  actividades     String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  criterios ProgramacionCriterio[]
+  sdas      SituacionAprendizaje[]
+
+  @@unique([departamentoId, materiaId, cursoEscolar])
+}
+
+model ProgramacionCriterio {
+  id             String                @id @default(cuid())
+  programacion   ProgramacionDidactica @relation(fields: [programacionId], references: [id])
+  programacionId String
+  criterio       CriterioEvaluacion    @relation(fields: [criterioId], references: [id])
+  criterioId     String
+  peso           Float                 @default(0.0)
+
+  @@unique([programacionId, criterioId])
+}
+
+model SituacionAprendizaje {
+  id                   String                @id @default(cuid())
+  titulo               String
+  descripcion          String
+  justificacion        String
+  contextualizacion    String
+  duracionHoras        Int
+  secuenciaActividades String
+  recursos             String
+  atencionDiversidad   String
+  competencias         String
+  criterioEvaluacion   CriterioEvaluacion    @relation(fields: [criterioEvaluacionId], references: [id])
+  criterioEvaluacionId String
+  programacion         ProgramacionDidactica @relation(fields: [programacionId], references: [id])
+  programacionId       String
+  calificaciones       Calificacion[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+}
+
+model Calificacion {
+  id                   String                 @id @default(cuid())
+  usuario              User                   @relation(fields: [usuarioId], references: [id])
+  usuarioId            String
+  alumno               Alumno                 @relation(fields: [alumnoId], references: [id])
+  alumnoId             String
+  situacionAprendizaje SituacionAprendizaje   @relation(fields: [sdaId], references: [id])
+  sdaId                String
+  trimestre            Trimestre
+  calificacion         Float
+  nivelCompetencia     NivelCompetencia
+  observaciones        String?
+  criterios            CalificacionCriterio[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@unique([usuarioId, alumnoId, sdaId, trimestre])
+}
+
+model CalificacionCriterio {
+  id             String             @id @default(cuid())
+  calificacion   Calificacion       @relation(fields: [calificacionId], references: [id])
+  calificacionId String
+  criterio       CriterioEvaluacion @relation(fields: [criterioId], references: [id])
+  criterioId     String
+  puntuacion     Float
+  nivel          NivelCompetencia
+
+  @@unique([calificacionId, criterioId])
+}
+
+model EvaluacionAlumno {
+  id            String    @id @default(cuid())
+  alumno        Alumno    @relation(fields: [alumnoId], references: [id])
+  alumnoId      String
+  materia       Materia   @relation(fields: [materiaId], references: [id])
+  materiaId     String
+  trimestre     Trimestre
+  notaFinal     Float
+  competencias  Json
+  observaciones String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([alumnoId, materiaId, trimestre])
+}

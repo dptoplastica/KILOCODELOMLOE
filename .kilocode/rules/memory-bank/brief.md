@@ -1,48 +1,45 @@
-# Project Brief: Next.js Starter Template
+# Project Brief: Gestión Educativa Cantabria (LOMLOE)
 
 ## Purpose
 
-This is a minimal Next.js starter template designed for AI-assisted development. It provides a clean foundation that can be extended to build any type of web application through interaction with an AI assistant.
+Web application for managing a Secondary and High School (Instituto de Secundaria y Bachillerato), complying with:
+- LOMLOE (Ley Orgánica de Modificación de la LOE)
+- Consejeria de Educación de Cantabria guidelines
 
 ## Target Users
 
-- Developers wanting a clean Next.js starting point
-- Users building applications through AI-assisted coding
-- Teams needing a standardized, modern Next.js setup
+- **Administrador**: CRUD de Departamentos, Profesores, Materias, Grupos, asignaciones de carga lectiva
+- **Jefe de Departamento**: Editor de Programaciones Didácticas y Situaciones de Aprendizaje (SDA)
+- **Profesor**: Cuaderno de Calificaciones para evaluar alumnos
 
-## Core Use Case
+## Core Features
 
-Users describe what they want to build to an AI assistant, which then expands this template by:
+### LOMLOE Competency Model
+- Competencias Clave (7): CCL, CMCT, CD, CP, CSC, CE, CC
+- Competencias Específicas por materia
+- Criterios de Evaluación con peso porcentual configurable
+- Saberes Básicos (bloques temáticos)
 
-1. Adding components and pages as needed
-2. Installing additional dependencies
-3. Setting up databases, authentication, etc. using recipes
-4. Customizing styling and branding
+### Programaciones Didácticas
+- Vinculadas a departamentos
+- Editor de SDA modelo Cantabria (Contextualización, Justificación, Competencias, Criterios)
 
-## Key Requirements
-
-### Must Have
-
-- Modern Next.js 16 setup with App Router
-- TypeScript for type safety
-- Tailwind CSS 4 for styling
-- ESLint for code quality
-- Clean, minimal starting structure
-- Bun as package manager
-
-### Nice to Have
-
-- Recipe system for common additions (database, auth)
-- Memory bank for AI context persistence
-- Clear development guidelines
+### Calificaciones
+- Evaluaciones trimestrales (1ª, 2ª, 3ª) y Final
+- Basadas en grado de adquisición de competencias
+- Cálculo automático con pesos de criterios
+- Informe final con gráficos de competencias
 
 ## Success Metrics
 
-- Clean, zero-error TypeScript setup
-- Passing lint and type checks
+- Schema Prisma validación exitosa
+- typecheck y lint sin errores
+- UI funcional del Cuaderno de Calificaciones
 
 ## Constraints
 
-- Minimal dependencies by default
-- Framework: Next.js 16 + React 19 + Tailwind CSS 4
+- Framework: Next.js 16 + App Router
+- DB: Neon (PostgreSQL) + Prisma
+- Auth: NextAuth.js o Clerk
+- Styles: Tailwind CSS 4 + Shadcn/UI
 - Package manager: Bun

@@ -1,87 +1,56 @@
-# Active Context: Next.js Starter Template
+# Active Context: Gestión Educativa Cantabria (LOMLOE)
 
 ## Current State
 
-**Template Status**: ✅ Ready for development
+**Project Status**: ✅ En desarrollo - Instituto de Secundaria y Bachillerato
 
-The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. It's ready for AI-assisted expansion to build any type of application.
+Aplicación web de gestión educativa complying with LOMLOE and Consejeria de Educación de Cantabria regulations.
 
 ## Recently Completed
 
-- [x] Base Next.js 16 setup with App Router
-- [x] TypeScript configuration with strict mode
-- [x] Tailwind CSS 4 integration
-- [x] ESLint configuration
-- [x] Memory bank documentation
-- [x] Recipe system for common features
+- [x] Schema Prisma con modelo LOMLOE (Competencias Clave, Específicas, Criterios, Saberes)
+- [x] Estructura de carpetas del proyecto Next.js 16
+- [x] Componentes UI (Button, Card, Select, Table, Badge)
+- [x] Dashboard layout con navegación
+- [x] Página Cuaderno de Calificaciones con evaluación por SDA
+- [x] Gráficos Recharts para visualización de competencias
 
-## Current Structure
+## Estructura del Proyecto
 
-| File/Directory | Purpose | Status |
-|----------------|---------|--------|
-| `src/app/page.tsx` | Home page | ✅ Ready |
-| `src/app/layout.tsx` | Root layout | ✅ Ready |
-| `src/app/globals.css` | Global styles | ✅ Ready |
-| `.kilocode/` | AI context & recipes | ✅ Ready |
+| Directorio | Propósito |
+|------------|-----------|
+| `prisma/schema.prisma` | Modelo de datos LOMLOE |
+| `src/lib/` | Utils y conexión BD |
+| `src/components/ui/` | Componentes Shadcn/UI |
+| `src/app/(dashboard)/` | Dashboard del sistema |
+| `src/app/(dashboard)/calificaciones/` | Cuaderno de calificaciones |
 
-## Current Focus
+## Funcionalidades Implementadas
 
-The template is ready. Next steps depend on user requirements:
+### Cuaderno de Calificaciones (Profesor)
+- Selector de grupo, SDA y trimestre
+- Tabla de evaluación por criterios con pesos porcentuales
+- Cálculo automático de nota final
+- Niveles de competencia: En Inicio, En Desarrollo, Adquirido, Dominado
+- Gráficos Radar y Barras para visualización de progreso
 
-1. What type of application to build
-2. What features are needed
-3. Design/branding preferences
+### Schema LOMLOE
+- Competencias Clave (CCL, CMCT, CD, CP, CSC, CE, CC)
+- Competencias Específicas por materia
+- Criterios de Evaluación con peso porcentual configurable
+- Situaciones de Aprendizaje (SDA) con modelo Cantabria
+- Calificaciones vinculadas a criterios
 
-## Quick Start Guide
+## Pendiente
 
-### To add a new page:
-
-Create a file at `src/app/[route]/page.tsx`:
-```tsx
-export default function NewPage() {
-  return <div>New page content</div>;
-}
-```
-
-### To add components:
-
-Create `src/components/` directory and add components:
-```tsx
-// src/components/ui/Button.tsx
-export function Button({ children }: { children: React.ReactNode }) {
-  return <button className="px-4 py-2 bg-blue-600 text-white rounded">{children}</button>;
-}
-```
-
-### To add a database:
-
-Follow `.kilocode/recipes/add-database.md`
-
-### To add API routes:
-
-Create `src/app/api/[route]/route.ts`:
-```tsx
-import { NextResponse } from "next/server";
-
-export async function GET() {
-  return NextResponse.json({ message: "Hello" });
-}
-```
-
-## Available Recipes
-
-| Recipe | File | Use Case |
-|--------|------|----------|
-| Add Database | `.kilocode/recipes/add-database.md` | Data persistence with Drizzle + SQLite |
-
-## Pending Improvements
-
-- [ ] Add more recipes (auth, email, etc.)
-- [ ] Add example components
-- [ ] Add testing setup recipe
+- [ ] Autenticación (NextAuth.js / Clerk)
+- [ ] Panel Administrador (CRUD Departamentos, Materias, Grupos)
+- [ ] Panel Jefe de Departamento (Programaciones Didácticas)
+- [ ] Generar informe final por alumno
 
 ## Session History
 
 | Date | Changes |
 |------|---------|
-| Initial | Template created with base setup |
+| 2026-04-14 | Schema Prisma + estructura proyecto + Cuaderno de Calificaciones |
+| Initial | Template Next.js base |

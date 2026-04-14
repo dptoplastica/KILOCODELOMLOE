@@ -1,143 +1,64 @@
-# Technical Context: Next.js Starter Template
+# Technical Context: Gestión Educativa Cantabria
 
 ## Technology Stack
 
-| Technology   | Version | Purpose                         |
-| ------------ | ------- | ------------------------------- |
-| Next.js      | 16.x    | React framework with App Router |
-| React        | 19.x    | UI library                      |
-| TypeScript   | 5.9.x   | Type-safe JavaScript            |
-| Tailwind CSS | 4.x     | Utility-first CSS               |
-| Bun          | Latest  | Package manager & runtime       |
+| Technology   | Version   | Purpose                         |
+|---------------|-----------|--------------------------------|
+| Next.js       | 16.x      | React framework with App Router|
+| React         | 19.x      | UI library                     |
+| TypeScript    | 5.9.x     | Type-safe JavaScript           |
+| Tailwind CSS  | 4.x       | Utility-first CSS              |
+| Bun           | Latest    | Package manager & runtime      |
+| Prisma        | 6.x       | ORM for PostgreSQL (Neon)     |
+| NextAuth.js   | 4.x       | Authentication                 |
+| Recharts      | 2.x       | Charts for competency viz      |
+| Shadcn/UI     | Latest    | UI components (Radix)          |
 
-## Development Environment
-
-### Prerequisites
-
-- Bun installed (`curl -fsSL https://bun.sh/install | bash`)
-- Node.js 20+ (for compatibility)
-
-### Commands
-
-```bash
-bun install        # Install dependencies
-bun dev            # Start dev server (http://localhost:3000)
-bun build          # Production build
-bun start          # Start production server
-bun lint           # Run ESLint
-bun typecheck      # Run TypeScript type checking
-```
-
-## Project Configuration
-
-### Next.js Config (`next.config.ts`)
-
-- App Router enabled
-- Default settings for flexibility
-
-### TypeScript Config (`tsconfig.json`)
-
-- Strict mode enabled
-- Path alias: `@/*` → `src/*`
-- Target: ESNext
-
-### Tailwind CSS 4 (`postcss.config.mjs`)
-
-- Uses `@tailwindcss/postcss` plugin
-- CSS-first configuration (v4 style)
-
-### ESLint (`eslint.config.mjs`)
-
-- Uses `eslint-config-next`
-- Flat config format
-
-## Key Dependencies
-
-### Production Dependencies
-
-```json
-{
-  "next": "^16.1.3", // Framework
-  "react": "^19.2.3", // UI library
-  "react-dom": "^19.2.3" // React DOM
-}
-```
-
-### Dev Dependencies
-
-```json
-{
-  "typescript": "^5.9.3",
-  "@types/node": "^24.10.2",
-  "@types/react": "^19.2.7",
-  "@types/react-dom": "^19.2.3",
-  "@tailwindcss/postcss": "^4.1.17",
-  "tailwindcss": "^4.1.17",
-  "eslint": "^9.39.1",
-  "eslint-config-next": "^16.0.0"
-}
-```
-
-## File Structure
+## Project Structure
 
 ```
 /
-├── .gitignore              # Git ignore rules
-├── package.json            # Dependencies and scripts
-├── bun.lock                # Bun lockfile
-├── next.config.ts          # Next.js configuration
-├── tsconfig.json           # TypeScript configuration
-├── postcss.config.mjs      # PostCSS (Tailwind) config
-├── eslint.config.mjs       # ESLint configuration
-├── public/                 # Static assets
-│   └── .gitkeep
-└── src/                    # Source code
-    └── app/                # Next.js App Router
-        ├── layout.tsx      # Root layout
-        ├── page.tsx        # Home page
-        ├── globals.css     # Global styles
-        └── favicon.ico     # Site icon
+├── prisma/
+│   └── schema.prisma           # LOMLOE data model
+├── src/
+│   ├── lib/
+│   │   ├── db.ts              # Prisma client singleton
+│   │   └── utils.ts           # CN utility for Tailwind
+│   ├── components/
+│   │   └── ui/                 # Shadcn/UI components
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── select.tsx
+│   │       ├── table.tsx
+│   │       └── badge.tsx
+│   └── app/
+│       ├── (dashboard)/        # Dashboard routes
+│       │   ├── layout.tsx      # Dashboard shell
+│       │   └── calificaciones/
+│       │       └── page.tsx    # Cuaderno de Calificaciones
+│       ├── globals.css
+│       └── layout.tsx
+└── package.json
 ```
 
-## Technical Constraints
+## Commands
 
-### Starting Point
+```bash
+bun install        # Install dependencies
+bun dev            # Start dev server
+bun build          # Production build
+bun typecheck      # TypeScript check
+bun lint           # ESLint
+bun db:push        # Push schema to Neon
+bun db:generate    # Generate Prisma client
+bun db:studio      # Open Prisma Studio
+```
 
-- Minimal structure - expand as needed
-- No database by default (use recipe to add)
-- No authentication by default (add when needed)
+## Environment Variables
 
-### Browser Support
-
-- Modern browsers (ES2020+)
-- No IE11 support
-
-## Performance Considerations
-
-### Image Optimization
-
-- Use Next.js `Image` component for optimization
-- Place images in `public/` directory
-
-### Bundle Size
-
-- Tree-shaking enabled by default
-- Tailwind CSS purges unused styles
-
-### Core Web Vitals
-
-- Server Components reduce client JavaScript
-- Streaming and Suspense for better UX
-
-## Deployment
-
-### Build Output
-
-- Server-rendered pages by default
-- Can be configured for static export
-
-### Environment Variables
-
-- None required for base template
-- Add as needed for features
-- Use `.env.local` for local development
+Create `.env.local`:
+```env
+DATABASE_URL=postgresql://...
+NEXTAUTH_SECRET=...
+NEXTAUTH_URL=http://localhost:3000
+```

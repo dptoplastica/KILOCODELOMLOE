@@ -1,120 +1,95 @@
-# System Patterns: Next.js Starter Template
+# System Patterns: Gestión Educativa Cantabria
 
 ## Architecture Overview
 
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── layout.tsx          # Root layout + metadata
-│   ├── page.tsx            # Home page
-│   ├── globals.css         # Tailwind imports + global styles
-│   └── favicon.ico         # Site icon
-└── (expand as needed)
-    ├── components/         # React components (add when needed)
-    ├── lib/                # Utilities and helpers (add when needed)
-    └── db/                 # Database files (add via recipe)
+│   ├── (dashboard)/        # Dashboard (route group)
+│   │   ├── layout.tsx      # Dashboard shell
+│   │   └── calificaciones/
+│   │       └── page.tsx   # Cuaderno de Calificaciones
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Landing/redirect
+│   └── globals.css         # Tailwind + variables
+├── lib/
+│   ├── db.ts              # Prisma client singleton
+│   └── utils.ts           # CN utility (clsx + tailwind-merge)
+└── components/
+    └── ui/                # Shadcn/UI components
+        ├── button.tsx
+        ├── card.tsx
+        ├── select.tsx
+        ├── table.tsx
+        └── badge.tsx
+
+prisma/
+└── schema.prisma           # LOMLOE data model
 ```
 
 ## Key Design Patterns
 
-### 1. App Router Pattern
+### 1. App Router + Route Groups
 
-Uses Next.js App Router with file-based routing:
-```
-src/app/
-├── page.tsx           # Route: /
-├── about/page.tsx     # Route: /about
-├── blog/
-│   ├── page.tsx       # Route: /blog
-│   └── [slug]/page.tsx # Route: /blog/:slug
-└── api/
-    └── route.ts       # API Route: /api
-```
+Los grupos de rutas con `(dashboard)` permiten layout diferenciado sin cambiar URL:
+- `(dashboard)/` → Dashboard autenticado
+- `(public)/` → Páginas públicas (login, etc.)
 
-### 2. Component Organization Pattern (When Expanding)
+### 2. Server Components por Defecto
 
-```
-src/components/
-├── ui/                # Reusable UI components (Button, Card, etc.)
-├── layout/            # Layout components (Header, Footer)
-├── sections/          # Page sections (Hero, Features, etc.)
-└── forms/             # Form components
-```
-
-### 3. Server Components by Default
-
-All components are Server Components unless marked with `"use client"`:
+Todos los componentes son Server Components excepto los que necesitan interacción:
 ```tsx
-// Server Component (default) - can fetch data, access DB
-export default function Page() {
-  return <div>Server rendered</div>;
+// Server Component - fetching de datos desde Prisma
+export default async function Page() {
+  const data = await prisma.alumno.findMany();
+  return <Table data={data} />;
 }
 
-// Client Component - for interactivity
+// Client Component - interactividad
 "use client";
-export default function Counter() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+export function EvaluacionSelector() {
+  const [trimestre, setTrimestre] = useState("PRIMERO");
+  return <Select value={trimestre} onChange={setTrimestre} />;
 }
 ```
 
-### 4. Layout Pattern
+### 3. Patrón de Evaluación por Competencias
 
-Layouts wrap pages and can be nested:
+```
+Alumno → SDA → Criterios → Puntuación (1-4) → Nota (0-10)
+```
+
+- Criterios tienen `pesoPorcentual` configurable por Jefe Dept.
+- Calificación se calcula automáticamente:
+  - Nota = Σ(puntuación_criterio × peso) / Σ(pesos) × 2.5
+
+### 4. Shadcn/UI + Tailwind
+
+Componentes Radix con Tailwind para estilos:
 ```tsx
-// src/app/layout.tsx - Root layout
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
-
-// src/app/dashboard/layout.tsx - Nested layout
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex">
-      <Sidebar />
-      <main>{children}</main>
-    </div>
-  );
-}
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 ```
 
 ## Styling Conventions
 
-### Tailwind CSS Usage
-- Utility classes directly on elements
-- Component composition for repeated patterns
-- Responsive: `sm:`, `md:`, `lg:`, `xl:`
-
-### Common Patterns
-```tsx
-// Container
-<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-// Responsive grid
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-// Flexbox centering
-<div className="flex items-center justify-center">
+Tailwind CSS 4 con variables CSS customizadas:
+```css
+:root {
+  --background: 0 0% 100%;
+  --primary: 222.2 47.4% 11.2%;
+  --radius: 0.5rem;
+}
 ```
-
-## File Naming Conventions
-
-- Components: PascalCase (`Button.tsx`, `Header.tsx`)
-- Utilities: camelCase (`utils.ts`, `helpers.ts`)
-- Pages/Routes: lowercase (`page.tsx`, `layout.tsx`)
-- Directories: kebab-case (`api-routes/`) or lowercase (`components/`)
 
 ## State Management
 
-For simple needs:
-- `useState` for local component state
-- `useContext` for shared state
-- Server Components for data fetching
+- **Server State**: Prisma + Server Components
+- **Client State**: useState/useReducer para componentes interactivos
+- **Auth**: NextAuth.js (credentials provider)
 
-For complex needs (add when necessary):
-- Zustand for client state
-- React Query for server state
+## File Naming
+
+- Componentes UI: PascalCase (`Button.tsx`)
+- Utilidades: camelCase (`utils.ts`, `db.ts`)
+- Páginas: lowercase (`page.tsx`, `layout.tsx`)
