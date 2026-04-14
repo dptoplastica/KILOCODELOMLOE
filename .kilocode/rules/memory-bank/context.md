@@ -14,6 +14,8 @@ Aplicación web de gestión educativa complying with LOMLOE and Consejeria de Ed
 - [x] Dashboard layout con navegación
 - [x] Página Cuaderno de Calificaciones con evaluación por SDA
 - [x] Gráficos Recharts para visualización de competencias
+- [x] Conexión a Neon PostgreSQL configurada
+- [x] Schema publicado a la base de datos (db push)
 
 ## Estructura del Proyecto
 
