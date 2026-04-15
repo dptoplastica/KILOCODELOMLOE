@@ -1,44 +1,41 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
+import { signIn } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [csrfToken, setCsrfToken] = useState("")
-  const [ready, setReady] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
-
-  useEffect(() => {
-    fetch("/api/auth/csrf")
-      .then(res => res.json())
-      .then(data => {
-        setCsrfToken(data.csrfToken)
-        setReady(true)
-      })
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    formRef.current?.submit()
-  }
+    setError("")
 
-  if (!ready) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <p className="text-center text-slate-500">Cargando...</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl,
+    })
+
+    if (result?.error) {
+      setError("Email o contraseña incorrectos")
+      setLoading(false)
+    } else if (result?.url) {
+      router.push(result.url)
+    }
   }
 
   return (
@@ -49,19 +46,16 @@ export default function LoginPage() {
           <CardDescription>Inicia sesión para acceder al sistema</CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            ref={formRef}
-            action="/api/auth/callback/credentials"
-            method="POST"
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-            <input type="hidden" name="csrfToken" value={csrfToken} />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -73,7 +67,6 @@ export default function LoginPage() {
               <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

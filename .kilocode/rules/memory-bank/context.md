@@ -12,8 +12,8 @@ Aplicación web de gestión educativa complying with LOMLOE and Consejeria de Ed
 - [x] Estructura de carpetas del proyecto Next.js 16
 - [x] Componentes UI (Button, Card, Select, Table, Badge, Dialog, Textarea, Input, Label)
 - [x] Dashboard layout con navegación por roles
-- [x] Autenticación NextAuth.js con credentials
-- [x] Login pages con validación
+- [x] Autenticación NextAuth.js con credentials provider
+- [x] Login page con signIn() API (no CSRF issues)
 - [x] Panel Administrador CRUD completo (Departamentos, Profesores, Materias, Grupos)
 - [x] Panel Jefe de Departamento - Programaciones Didácticas
 - [x] Página Cuaderno de Calificaciones con evaluación por SDA
@@ -21,6 +21,19 @@ Aplicación web de gestión educativa complying with LOMLOE and Consejeria de Ed
 - [x] Conexión a Neon PostgreSQL configurada
 - [x] Schema publicado a la base de datos (db push)
 - [x] Seed de datos con usuarios de prueba
+
+## Server
+
+- Servidor corriendo en puerto **3005**
+- URL: http://localhost:3005
+
+## Credenciales de Prueba
+
+| Email | Contraseña | Rol |
+|-------|------------|-----|
+| admin@instituto.es | admin123 | Administrador |
+| jefe@instituto.es | jefe123 | Jefe de Departamento |
+| profesor@instituto.es | prof123 | Profesor |
 
 ## Estructura del Proyecto
 
