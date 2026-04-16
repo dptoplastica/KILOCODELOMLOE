@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, Suspense } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,18 +22,25 @@ function LoginForm() {
     setLoading(true)
     setError("")
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl,
-    })
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-    if (result?.error) {
-      setError("Email o contraseña incorrectos")
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Error al iniciar sesión")
+        setLoading(false)
+        return
+      }
+
+      router.push(callbackUrl)
+    } catch (err) {
+      setError("Error de conexión")
       setLoading(false)
-    } else if (result?.url) {
-      router.push(result.url)
     }
   }
 

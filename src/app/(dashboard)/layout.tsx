@@ -1,23 +1,40 @@
-import { getServerSession } from "next-auth"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { authOptions } from "@/lib/auth"
+import { jwtVerify } from "jose"
 import Link from "next/link"
 import { GraduationCap, LogOut } from "lucide-react"
+
+const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
+
+async function getSession() {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get("session")
+
+  if (!sessionCookie?.value) {
+    return null
+  }
+
+  try {
+    const { payload } = await jwtVerify(sessionCookie.value, secret)
+    return payload
+  } catch {
+    return null
+  }
+}
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  const user = await getSession()
   
-  if (!session) {
+  if (!user) {
     redirect("/login")
   }
 
-  const user = session.user as any
-  const isAdmin = user?.role === "ADMINISTRADOR"
-  const isJefeDept = user?.role === "JEFE_DEPARTAMENTO"
+  const isAdmin = user.role === "ADMINISTRADOR"
+  const isJefeDept = user.role === "JEFE_DEPARTAMENTO"
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -53,14 +70,16 @@ export default async function DashboardLayout({
             </div>
             <div className="flex items-center gap-4">
               <div className="text-sm">
-                <span className="text-slate-600">{user?.name}</span>
+                <span className="text-slate-600">{user.name as string}</span>
                 <span className="ml-2 text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
-                  {user?.role === "ADMINISTRADOR" ? "Admin" : user?.role === "JEFE_DEPARTAMENTO" ? "Jefe Dpto." : "Profesor"}
+                  {user.role === "ADMINISTRADOR" ? "Admin" : user.role === "JEFE_DEPARTAMENTO" ? "Jefe Dpto." : "Profesor"}
                 </span>
               </div>
-              <Link href="/api/auth/signout" className="text-slate-500 hover:text-slate-700">
-                <LogOut className="h-5 w-5" />
-              </Link>
+              <form action="/api/logout" method="POST">
+                <button type="submit" className="text-slate-500 hover:text-slate-700">
+                  <LogOut className="h-5 w-5" />
+                </button>
+              </form>
             </div>
           </div>
         </div>
