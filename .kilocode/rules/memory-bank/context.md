@@ -22,7 +22,16 @@ Aplicación web de gestión educativa complying with LOMLOE and Consejeria de Ed
 - [x] Schema publicado a la base de datos (db push)
 - [x] Seed de datos con usuarios de prueba
 
-## Server
+## Nuevo: Gestión del Currículo LOMLOE
+
+- [x] CRUD Competencias Clave
+- [x] CRUD Competencias Específicas (vinculadas a materia)
+- [x] CRUD Criterios de Evaluación (vinculados a competencia específica)
+- [x] CRUD Saberes Básicos (por materia)
+- [x] API endpoints en /api/admin/curriculum
+- [x] Página en /admin/curriculum
+
+## Credenciales de Prueba
 
 - Servidor corriendo en puerto **3005**
 - URL: http://localhost:3005

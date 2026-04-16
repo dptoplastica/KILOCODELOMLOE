@@ -8,3 +8,7 @@ $ next dev --port "3005"
 ✓ Ready in 935ms
  GET /login 200 in 899ms (compile: 691ms, render: 207ms)
  POST /api/login 200 in 3.0s (compile: 103ms, render: 2.9s)
+ GET /api/admin/curriculum 401 in 313ms (compile: 300ms, render: 14ms)
+ GET /admin/curriculum 307 in 2.5s (compile: 2.2s, render: 278ms)
+ GET /admin/curriculum 307 in 81ms (compile: 5ms, render: 76ms)
+ GET /login 200 in 96ms (compile: 19ms, render: 77ms)

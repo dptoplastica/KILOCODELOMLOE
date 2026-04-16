@@ -66,6 +66,11 @@ export default async function DashboardLayout({
                     Administración
                   </Link>
                 )}
+                {isAdmin && (
+                  <Link href="/admin/curriculum" className="text-sm font-medium text-slate-600 hover:text-slate-900">
+                    Currículo
+                  </Link>
+                )}
               </nav>
             </div>
             <div className="flex items-center gap-4">
