@@ -12,3 +12,4 @@ $ next dev --port "3005"
  GET /admin/curriculum 307 in 2.5s (compile: 2.2s, render: 278ms)
  GET /admin/curriculum 307 in 81ms (compile: 5ms, render: 76ms)
  GET /login 200 in 96ms (compile: 19ms, render: 77ms)
+ GET /login 200 in 246ms (compile: 99ms, render: 146ms)
