@@ -1,31 +1,63 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { cookies } from "next/headers"
+import { jwtVerify } from "jose"
+
+const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
+
+async function getSession() {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get("session")
+  if (!sessionCookie?.value) return null
+  try {
+    const { payload } = await jwtVerify(sessionCookie.value, secret)
+    return payload
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: Request) {
+  const user = await getSession()
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
   try {
-    const session = await getServerSession(authOptions)
-    const user = session?.user as any
-    
-    if (!session || user?.role !== "JEFE_DEPARTAMENTO") {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-
     const { searchParams } = new URL(request.url)
-    const departamentoId = searchParams.get("departamentoId")
+    const programacionId = searchParams.get("programacionId")
 
-    if (!departamentoId) {
-      return NextResponse.json({ error: "Departamento requerido" }, { status: 400 })
+    if (programacionId) {
+      const sdas = await prisma.situacionAprendizaje.findMany({
+        where: { programacionId },
+        include: {
+          criterioEvaluacion: {
+            include: {
+              competenciaEspecifica: {
+                select: { id: true, codigo: true, nombre: true }
+              }
+            }
+          }
+        },
+        orderBy: { titulo: "asc" }
+      })
+      return NextResponse.json(sdas)
     }
+
+    const deptId = user.departamentoId as string
+    if (user.role !== "ADMINISTRADOR" && user.role !== "JEFE_DEPARTAMENTO" && !deptId) {
+      return NextResponse.json({ error: "Sin departamento" }, { status: 400 })
+    }
+
+    const whereClause = user.role === "ADMINISTRADOR" ? {} : { departamentoId: deptId }
 
     const programaciones = await prisma.programacionDidactica.findMany({
-      where: { departamentoId },
+      where: whereClause,
       include: {
-        materia: { select: { nombre: true } },
+        materia: { select: { id: true, nombre: true, codigo: true } },
         _count: { select: { sdas: true } }
       },
-      orderBy: { materia: { nombre: "asc" } }
+      orderBy: { createdAt: "desc" }
     })
 
     return NextResponse.json(programaciones)
@@ -36,74 +68,129 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const user = await getSession()
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
   try {
-    const session = await getServerSession(authOptions)
-    const user = session?.user as any
-    
-    if (!session || user?.role !== "JEFE_DEPARTAMENTO") {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { materiaId, departamentoId, cursoEscolar, objetivoGeneral, evaluacion, recuperacion, actividades } = body
+    const { type, data } = body
 
-    if (!materiaId || !departamentoId || !cursoEscolar) {
-      return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 })
+    if (type === "programacion") {
+      const deptId = user.role === "ADMINISTRADOR" ? data.departamentoId : user.departamentoId
+      const programacion = await prisma.programacionDidactica.create({
+        data: {
+          departamentoId: deptId as string,
+          materiaId: data.materiaId,
+          cursoEscolar: data.cursoEscolar,
+          objetivoGeneral: data.objetivoGeneral || "",
+          evaluacion: data.evaluacion || "",
+          recuperacion: data.recuperacion || "",
+          actividades: data.actividades || "",
+          contextualizacion: data.contextualizacion || null,
+          justificacion: data.justificacion || null,
+        }
+      })
+      return NextResponse.json(programacion)
     }
 
-    const programacion = await prisma.programacionDidactica.create({
-      data: {
-        materiaId,
-        departamentoId,
-        cursoEscolar,
-        objetivoGeneral: objetivoGeneral || "",
-        evaluacion: evaluacion || "",
-        recuperacion: recuperacion || "",
-        actividades: actividades || "",
-      }
-    })
+    if (type === "sda") {
+      const sda = await prisma.situacionAprendizaje.create({
+        data: {
+          titulo: data.titulo,
+          descripcion: data.descripcion || "",
+          justificacion: data.justificacion || "",
+          contextualizacion: data.contextualizacion || "",
+          duracionHoras: data.duracionHoras || 10,
+          secuenciaActividades: data.secuenciaActividades || "",
+          recursos: data.recursos || "",
+          atencionDiversidad: data.atencionDiversidad || "",
+          competencias: data.competencias || "",
+          criterioEvaluacionId: data.criterioEvaluacionId,
+          programacionId: data.programacionId,
+        }
+      })
+      return NextResponse.json(sda)
+    }
 
-    return NextResponse.json(programacion)
-  } catch (error: any) {
+    return NextResponse.json({ error: "Tipo inválido" }, { status: 400 })
+  } catch (error) {
     console.error("Error:", error)
-    if (error.code === "P2002") {
-      return NextResponse.json({ error: "Ya existe una programación para esta materia" }, { status: 400 })
-    }
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }
 }
 
 export async function PUT(request: Request) {
+  const user = await getSession()
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
   try {
-    const session = await getServerSession(authOptions)
-    const user = session?.user as any
-    
-    if (!session || user?.role !== "JEFE_DEPARTAMENTO") {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { id, materiaId, cursoEscolar, objetivoGeneral, evaluacion, recuperacion, actividades } = body
+    const { type, id, data } = body
 
-    if (!id || !materiaId || !cursoEscolar) {
-      return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 })
+    if (type === "programacion") {
+      const programacion = await prisma.programacionDidactica.update({
+        where: { id },
+        data: {
+          objetivoGeneral: data.objetivoGeneral || "",
+          evaluacion: data.evaluacion || "",
+          recuperacion: data.recuperacion || "",
+          actividades: data.actividades || "",
+          contextualizacion: data.contextualizacion || "",
+          justificacion: data.justificacion || "",
+        }
+      })
+      return NextResponse.json(programacion)
     }
 
-    const programacion = await prisma.programacionDidactica.update({
-      where: { id },
-      data: {
-        materiaId,
-        cursoEscolar,
-        objetivoGeneral: objetivoGeneral || "",
-        evaluacion: evaluacion || "",
-        recuperacion: recuperacion || "",
-        actividades: actividades || "",
-      }
-    })
+    if (type === "sda") {
+      const sda = await prisma.situacionAprendizaje.update({
+        where: { id },
+        data: {
+          titulo: data.titulo,
+          descripcion: data.descripcion || "",
+          justificacion: data.justificacion || "",
+          contextualizacion: data.contextualizacion || "",
+          duracionHoras: data.duracionHoras || 10,
+          secuenciaActividades: data.secuenciaActividades || "",
+          recursos: data.recursos || "",
+          atencionDiversidad: data.atencionDiversidad || "",
+          competencias: data.competencias || "",
+          criterioEvaluacionId: data.criterioEvaluacionId,
+        }
+      })
+      return NextResponse.json(sda)
+    }
 
-    return NextResponse.json(programacion)
+    return NextResponse.json({ error: "Tipo inválido" }, { status: 400 })
   } catch (error) {
     console.error("Error:", error)
+    return NextResponse.json({ error: "Error interno" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  const user = await getSession()
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
+  try {
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get("type")
+    const id = searchParams.get("id")
+
+    if (type === "programacion") {
+      await prisma.programacionDidactica.delete({ where: { id } })
+    } else if (type === "sda") {
+      await prisma.situacionAprendizaje.delete({ where: { id } })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }
 }

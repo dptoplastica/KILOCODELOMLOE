@@ -205,6 +205,8 @@ model ProgramacionDidactica {
   evaluacion      String
   recuperacion    String
   actividades     String
+  justificacion   String?
+  contextualizacion String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
