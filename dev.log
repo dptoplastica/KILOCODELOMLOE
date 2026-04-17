@@ -1,0 +1,14 @@
+
+> gestion-educativa-cantabria@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://10.0.0.1:3001
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 746ms
+ POST /api/login 200 in 695ms (compile: 574ms, render: 120ms)
+ GET /login 200 in 954ms (compile: 780ms, render: 173ms)

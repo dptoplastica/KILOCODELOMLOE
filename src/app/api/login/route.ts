@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db"
 import { compare } from "bcryptjs"
 import { SignJWT, jwtVerify } from "jose"
 
-const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
+const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "development-secret-key-change-in-production")
 
 export async function POST(request: Request) {
   try {

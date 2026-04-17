@@ -183,9 +183,9 @@ export async function DELETE(request: Request) {
     const type = searchParams.get("type")
     const id = searchParams.get("id")
 
-    if (type === "programacion") {
+    if (type === "programacion" && id) {
       await prisma.programacionDidactica.delete({ where: { id } })
-    } else if (type === "sda") {
+    } else if (type === "sda" && id) {
       await prisma.situacionAprendizaje.delete({ where: { id } })
     }
 
